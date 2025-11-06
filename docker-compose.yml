@@ -1,0 +1,158 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      target: development
+      dockerfile: Dockerfile
+    container_name: shipix-api
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3000
+      - HOST=0.0.0.0
+      - SAAS_API_BASE_URL=${SAAS_API_BASE_URL}
+      - SAAS_API_KEY=${SAAS_API_KEY}
+      - SAAS_API_TIMEOUT=${SAAS_API_TIMEOUT:-30000}
+      - WHATSAPP_API_URL=http://evolution-api:8080
+      - WHATSAPP_API_KEY=${WHATSAPP_API_KEY}
+      - WHATSAPP_INSTANCE_NAME=${WHATSAPP_INSTANCE_NAME:-driver-app}
+      - WHATSAPP_WEBHOOK_TOKEN=${WHATSAPP_WEBHOOK_TOKEN}
+      - N8N_WEBHOOK_URL=http://n8n:5678/webhook
+      - N8N_API_KEY=${N8N_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4-turbo-preview}
+      - OPENAI_MAX_TOKENS=${OPENAI_MAX_TOKENS:-1000}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_FILE_PATH=/app/logs
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-900000}
+      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-100}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+      - ENABLE_AI_ASSISTANT=${ENABLE_AI_ASSISTANT:-true}
+      - ENABLE_DAILY_SUMMARIES=${ENABLE_DAILY_SUMMARIES:-true}
+      - ENABLE_EMERGENCY_ALERTS=${ENABLE_EMERGENCY_ALERTS:-true}
+    volumes:
+      - ./src:/app/src:cached
+      - ./package.json:/app/package.json:cached
+      - ./tsconfig.json:/app/tsconfig.json:cached
+      - ./.eslintrc.json:/app/.eslintrc.json:cached
+      - ./.prettierrc.json:/app/.prettierrc.json:cached
+
+      - node_modules:/app/node_modules
+
+      - ./logs:/app/logs:delegated
+    networks:
+      - shipix-network
+    depends_on:
+      - n8n
+      - evolution-api
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: shipix-n8n
+    restart: unless-stopped
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD:-admin}
+      - N8N_HOST=${N8N_HOST:-localhost}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://n8n:5678/
+      - GENERIC_TIMEZONE=${TIMEZONE:-America/Sao_Paulo}
+      - N8N_EDITOR_BASE_URL=http://localhost:5678
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n-workflows:/workflows:cached
+    networks:
+      - shipix-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:5678/healthz",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+  evolution-api:
+    image: atendai/evolution-api:latest
+    container_name: shipix-evolution-api
+    restart: unless-stopped
+    ports:
+      - "${EVOLUTION_PORT:-8080}:8080"
+    environment:
+      - SERVER_URL=http://localhost:8080
+      - AUTHENTICATION_API_KEY=${WHATSAPP_API_KEY}
+      - DEL_INSTANCE=false
+      - PROVIDER_ENABLED=false
+      - PROVIDER_HOST=127.0.0.1
+      - PROVIDER_PORT=5656
+      - WEBHOOK_GLOBAL_URL=http://app:3000/webhook/whatsapp
+      - WEBHOOK_GLOBAL_ENABLED=true
+      - WEBHOOK_GLOBAL_WEBHOOK_BY_EVENTS=true
+      - CONFIG_SESSION_PHONE_CLIENT=Shipix Driver App
+      - CONFIG_SESSION_PHONE_NAME=Chrome
+      - QRCODE_LIMIT=30
+      - QRCODE_COLOR=#198754
+    volumes:
+      - evolution_data:/evolution/store
+      - evolution_instances:/evolution/instances
+    networks:
+      - shipix-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  shipix-network:
+    driver: bridge
+    name: shipix-network
+
+volumes:
+  node_modules:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/node_modules
+  n8n_data:
+    driver: local
+  evolution_data:
+    driver: local
+  evolution_instances:
+    driver: local

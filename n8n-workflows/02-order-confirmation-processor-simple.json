@@ -1,0 +1,61 @@
+{
+  "name": "02 - Order Confirmation (Simple)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "order-confirmed",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "order-confirmed-webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3005/api/orders/confirm",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "confirm-order",
+      "name": "Confirm Order",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Show confirmation result\nconst data = $input.first().json;\n\nconsole.log('✅ Order confirmed successfully');\nconsole.log('Result:', data);\n\nreturn data;"
+      },
+      "id": "show-result",
+      "name": "Show Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Confirm Order", "type": "main", "index": 0 }]]
+    },
+    "Confirm Order": {
+      "main": [[{ "node": "Show Result", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-11-07T00:00:00.000Z",
+  "versionId": "1"
+}

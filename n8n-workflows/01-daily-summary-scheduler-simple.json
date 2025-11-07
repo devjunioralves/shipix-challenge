@@ -1,0 +1,61 @@
+{
+  "name": "01 - Daily Summary (Simple)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-daily",
+      "name": "Schedule: Daily 8:00 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3005/api/orders/daily-summary/driver-123",
+        "options": {}
+      },
+      "id": "fetch-summary",
+      "name": "Fetch Daily Summary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Display the summary result\nconst data = $input.first().json;\n\nconsole.log('✅ Daily summary fetched successfully');\nconsole.log('Message:', data.message);\n\nreturn data;"
+      },
+      "id": "show-result",
+      "name": "Show Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    }
+  ],
+  "connections": {
+    "Schedule: Daily 8:00 AM": {
+      "main": [[{ "node": "Fetch Daily Summary", "type": "main", "index": 0 }]]
+    },
+    "Fetch Daily Summary": {
+      "main": [[{ "node": "Show Result", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-11-07T00:00:00.000Z",
+  "versionId": "1"
+}

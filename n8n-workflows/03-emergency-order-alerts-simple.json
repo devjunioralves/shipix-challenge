@@ -1,0 +1,61 @@
+{
+  "name": "03 - Emergency Alerts (Simple)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "schedule-15min",
+      "name": "Schedule: Every 15 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3005/api/orders/daily-summary/driver-123",
+        "options": {}
+      },
+      "id": "check-orders",
+      "name": "Check Orders",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check for urgent orders\nconst data = $input.first().json;\n\nconsole.log('🔍 Checking for urgent orders...');\n\n// In a real scenario, you'd filter for urgent/delayed orders\nif (data.orders && data.orders.length > 0) {\n  console.log('⚠️ Found orders to monitor');\n  return data;\n} else {\n  console.log('✅ No urgent orders');\n  return { message: 'No urgent orders' };\n}"
+      },
+      "id": "filter-urgent",
+      "name": "Filter Urgent Orders",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    }
+  ],
+  "connections": {
+    "Schedule: Every 15 Minutes": {
+      "main": [[{ "node": "Check Orders", "type": "main", "index": 0 }]]
+    },
+    "Check Orders": {
+      "main": [[{ "node": "Filter Urgent Orders", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-11-07T00:00:00.000Z",
+  "versionId": "1"
+}

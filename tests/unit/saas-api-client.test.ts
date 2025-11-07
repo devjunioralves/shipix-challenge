@@ -124,7 +124,7 @@ describe('SaaSApiClient Unit Tests', () => {
   describe('confirmDelivery', () => {
     it('should confirm delivery with notes', async () => {
       const orderId = mockOrder.id;
-      const notes = 'Entregue com sucesso';
+      const notes = 'Delivered successfully';
 
       const confirmedOrder = { ...mockOrder, status: 'delivered' as const };
 
@@ -137,7 +137,7 @@ describe('SaaSApiClient Unit Tests', () => {
 
     it('should confirm delivery with photo', async () => {
       const orderId = mockOrder.id;
-      const notes = 'Entregue';
+      const notes = 'Delivered';
       const photo = 'base64-encoded-image';
 
       const confirmedOrder = { ...mockOrder, status: 'delivered' as const };

@@ -62,15 +62,15 @@ describe('E2E Tests - Complete System Flow', () => {
 
       const confirmResponse = await request(app)
         .post('/api/orders/confirm')
-        .send({ orderId, notes: 'Entregue com sucesso' })
+        .send({ orderId, notes: 'Delivered successfully' })
         .expect(200);
 
       expect(confirmResponse.body.success).toBe(true);
       expect(confirmResponse.body.data.order.status).toBe('delivered');
 
-      expect(summaryResponse.body.data.formattedMessage).toContain('Resumo do Dia');
-      expect(orderResponse.body.data.formattedMessage).toContain('Pedido');
-      expect(confirmResponse.body.data.formattedMessage).toContain('confirmado');
+      expect(summaryResponse.body.data.formattedMessage).toContain("Today's Summary");
+      expect(orderResponse.body.data.formattedMessage).toContain('Order');
+      expect(confirmResponse.body.data.formattedMessage).toContain('confirmed');
     });
   });
 

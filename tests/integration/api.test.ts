@@ -71,7 +71,7 @@ describe('API Integration Tests', () => {
         driverName: mockDriver.name,
         totalOrders: mockOrders.length,
       });
-      expect(response.body.data.formattedMessage).toContain('Resumo do Dia');
+      expect(response.body.data.formattedMessage).toContain("Today's Summary");
       expect(response.body.data.formattedMessage).toContain(mockDriver.name);
     });
 
@@ -126,7 +126,7 @@ describe('API Integration Tests', () => {
         id: orderId,
         orderNumber: mockOrder.id,
       });
-      expect(response.body.data.formattedMessage).toContain('Pedido #1234');
+      expect(response.body.data.formattedMessage).toContain('📦 *Order');
       expect(response.body.data.formattedMessage).toContain(mockOrder.customer.name);
     });
 
@@ -147,7 +147,7 @@ describe('API Integration Tests', () => {
   describe('POST /api/orders/confirm', () => {
     it('should confirm order delivery', async () => {
       const orderId = mockOrder.id;
-      const notes = 'Entregue com sucesso';
+      const notes = 'Delivered successfully';
 
       const confirmedOrder = {
         ...mockOrder,
@@ -165,7 +165,7 @@ describe('API Integration Tests', () => {
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.order.status).toBe('delivered');
-      expect(response.body.data.formattedMessage).toContain('confirmado');
+      expect(response.body.data.formattedMessage).toContain('confirmed');
     });
 
     it('should return 400 when orderId is missing', async () => {

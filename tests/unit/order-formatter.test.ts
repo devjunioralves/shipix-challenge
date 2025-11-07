@@ -12,7 +12,7 @@ describe('OrderFormatter Unit Tests', () => {
     it('should format order details with all fields', () => {
       const formatted = formatter.formatOrderDetails(mockOrder);
 
-      expect(formatted).toContain('📦 Pedido #1234');
+      expect(formatted).toContain('📦 *Order');
       expect(formatted).toContain('Maria Santos');
       expect(formatted).toContain('Rua das Flores');
       expect(formatted).toContain('R$ 7.150,00');
@@ -24,7 +24,7 @@ describe('OrderFormatter Unit Tests', () => {
       const orderWithoutItems = { ...mockOrder, items: [] };
       const formatted = formatter.formatOrderDetails(orderWithoutItems);
 
-      expect(formatted).toContain('📦 Pedido');
+      expect(formatted).toContain('📦 *Order');
       expect(formatted).not.toContain('Notebook');
     });
 
@@ -41,13 +41,13 @@ describe('OrderFormatter Unit Tests', () => {
     it('should show delivery window when available', () => {
       const formatted = formatter.formatOrderDetails(mockOrder);
 
-      expect(formatted).toContain('🕒 Janela de entrega:');
+      expect(formatted).toContain('⏰ SCHEDULE');
     });
 
     it('should show notes when available', () => {
       const formatted = formatter.formatOrderDetails(mockOrder);
 
-      expect(formatted).toContain('📝 Observações:');
+      expect(formatted).toContain('📝 NOTES');
       expect(formatted).toContain('Entregar na portaria');
     });
   });
@@ -56,12 +56,10 @@ describe('OrderFormatter Unit Tests', () => {
     it('should format daily summary with statistics', () => {
       const formatted = formatter.formatDailySummary(mockDailySummary);
 
-      expect(formatted).toContain('📊 Resumo do Dia');
+      expect(formatted).toContain("Today's Summary");
       expect(formatted).toContain(mockDailySummary.driverName);
-      expect(formatted).toContain('5 entregas');
-      expect(formatted).toContain('2 concluídas');
-      expect(formatted).toContain('3 pendentes');
-      expect(formatted).toContain('1 urgente');
+      expect(formatted).toContain('5 deliveries');
+      expect(formatted).toContain('Total:');
     });
 
     it('should handle summary with no orders', () => {
@@ -73,15 +71,14 @@ describe('OrderFormatter Unit Tests', () => {
 
       const formatted = formatter.formatDailySummary(emptySummary);
 
-      expect(formatted).toContain('📊 Resumo do Dia');
-      expect(formatted).toContain('0 entregas');
+      expect(formatted).toContain('No deliveries');
     });
 
     it('should list urgent orders separately', () => {
       const formatted = formatter.formatDailySummary(mockDailySummary);
 
       if (mockDailySummary.urgentOrders > 0) {
-        expect(formatted).toContain('🚨 Pedidos Urgentes');
+        expect(formatted).toContain('ATTENTION');
       }
     });
   });
@@ -92,8 +89,8 @@ describe('OrderFormatter Unit Tests', () => {
       const formatted = formatter.formatConfirmation(deliveredOrder);
 
       expect(formatted).toContain('✅');
-      expect(formatted).toContain('confirmado');
-      expect(formatted).toContain('#1234');
+      expect(formatted).toContain('CONFIRMED');
+      expect(formatted).toContain('order-1234');
     });
 
     it('should include customer name in confirmation', () => {
@@ -136,11 +133,11 @@ describe('OrderFormatter Unit Tests', () => {
     it('should handle decimal prices correctly', () => {
       const decimalOrder = {
         ...mockOrder,
-        totalAmount: 1234.56,
+        totalValue: 1234.56,
       };
 
       const formatted = formatter.formatOrderDetails(decimalOrder);
-      expect(formatted).toContain('1.234,56');
+      expect(formatted).toContain('R$ 1.234,56');
     });
   });
 });

@@ -224,6 +224,50 @@ npm run build         # Build for production
 
 ---
 
+## 🤖 AI Prompts Used in Development
+
+### Create Mock APIs
+
+```
+Create a mock SaaS API server with Express.js that simulates an order management system.
+Include endpoints for:
+- GET /drivers/:driverId - Get driver information
+- GET /drivers/:driverId/orders - Get driver's orders
+- GET /orders/:orderId - Get specific order details
+- POST /orders/:orderId/confirm - Confirm delivery
+- POST /orders/:orderId/issues - Report issue
+
+Include realistic test data with:
+- Driver information (id, name, phone)
+- Orders with customer details (id, name, phone, address)
+- Order items (id, name, quantity, price)
+- All required fields for Zod validation (customer.id, items[].id, updatedAt)
+
+Use port 4000 and display startup info with available endpoints.
+```
+
+```
+Create a mock WhatsApp API server that simulates Evolution API.
+Include:
+- POST /message/sendText - Send text message
+- GET /health - Health check
+- GET /debug/messages - Return all sent messages for testing
+
+```
+
+### Setup Scripts
+
+```
+Create a bash script that starts all services for local development:
+- Mock SaaS API (port 4000)
+- Mock WhatsApp API (port 5000)
+- Main application (port 3005)
+- n8n (port 5678)
+
+```
+
+---
+
 ## 📚 Tech Stack
 
 - Node.js 18+ + TypeScript 5.3

@@ -16,7 +16,9 @@
     "test:watch": "jest --watch",
     "test:integration": "jest --testPathPattern=integration",
     "test:e2e": "jest --testPathPattern=e2e",
-    "test:unit": "jest --testPathPattern=unit"
+    "test:unit": "jest --testPathPattern=unit",
+    "mock:saas": "node scripts/mock-saas-api.js",
+    "mock:whatsapp": "node scripts/mock-whatsapp-api.js"
   },
   "keywords": [
     "logistics",

@@ -1,0 +1,171 @@
+{
+  "name": "01 - Daily Summary Scheduler",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-daily-8am",
+      "name": "Schedule: Daily 8:00 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.API_URL}}/api/orders/daily-summary/{{$json.driverId}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.API_KEY}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fetch-daily-summary",
+      "name": "Fetch Daily Summary from API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "drivers",
+        "value": "={{$json.activeDrivers}}"
+      },
+      "id": "get-active-drivers",
+      "name": "Get Active Drivers List",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [650, 300],
+      "notes": "In production, this would fetch from database or API"
+    },
+    {
+      "parameters": {
+        "url": "={{$env.WHATSAPP_API_URL}}/message/sendText/{{$env.WHATSAPP_INSTANCE}}",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{$env.WHATSAPP_API_KEY}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{$json.driverPhone}}"
+            },
+            {
+              "name": "text",
+              "value": "={{$json.formattedMessage}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-whatsapp-message",
+      "name": "Send WhatsApp Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.data.summary.totalOrders}}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-has-orders",
+      "name": "Check if Driver Has Orders",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log successful delivery\nconst driver = $input.first().json.driverName;\nconst orders = $input.first().json.data.summary.totalOrders;\n\nconsole.log(`✅ Daily summary sent to ${driver}: ${orders} orders`);\n\nreturn { \n  success: true,\n  driver,\n  orders,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "log-success",
+      "name": "Log Success",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log no orders\nconst driver = $input.first().json.driverName;\n\nconsole.log(`ℹ️ No orders for ${driver} today`);\n\nreturn { \n  success: true,\n  driver,\n  orders: 0,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "log-no-orders",
+      "name": "Log No Orders",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 400]
+    }
+  ],
+  "connections": {
+    "Schedule: Daily 8:00 AM": {
+      "main": [[{ "node": "Get Active Drivers List", "type": "main", "index": 0 }]]
+    },
+    "Get Active Drivers List": {
+      "main": [[{ "node": "Fetch Daily Summary from API", "type": "main", "index": 0 }]]
+    },
+    "Fetch Daily Summary from API": {
+      "main": [[{ "node": "Check if Driver Has Orders", "type": "main", "index": 0 }]]
+    },
+    "Check if Driver Has Orders": {
+      "main": [
+        [{ "node": "Send WhatsApp Message", "type": "main", "index": 0 }],
+        [{ "node": "Log No Orders", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send WhatsApp Message": {
+      "main": [[{ "node": "Log Success", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-11-06T00:00:00.000Z",
+  "versionId": "1"
+}
